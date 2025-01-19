@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AuthenticationButton extends StatelessWidget {
   const AuthenticationButton(
       {super.key, required this.label, required this.onPress});
 
-  final String label;
+  final Widget label;
   final VoidCallback onPress;
 
   @override
@@ -21,13 +20,7 @@ class AuthenticationButton extends StatelessWidget {
         ),
         elevation: 0,
       ),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      child: Center(child: label),
     );
   }
 }

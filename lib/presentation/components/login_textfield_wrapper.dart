@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:link_up/data/provider/auth_provider.dart';
 
-import '../screens/chat/chat_list_screen.dart';
 import '../widgets/authentication_button.dart';
 import '../widgets/custom_text_form_field.dart';
 
-class LoginTextfieldWrapper extends StatelessWidget {
+class LoginTextfieldWrapper extends ConsumerWidget {
   const LoginTextfieldWrapper({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ap = ref.watch(authProvider);
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -26,33 +31,39 @@ class LoginTextfieldWrapper extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          CustomTextFormField(
-            hintText: 'Email',
-            icon: Icons.email_outlined,
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-          CustomTextFormField(
-            hintText: 'Password',
-            icon: Icons.lock_outline_rounded,
-            obscureText: true,
-            showVisibilityToggle: true,
-          ),
-          const SizedBox(height: 24),
-          AuthenticationButton(
-            label: 'Sign In',
-            onPress: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ChatListScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+      child: Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CustomTextFormField(
+              hintText: 'Email',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              controller: ap.emailController,
+            ),
+            const SizedBox(height: 16),
+            CustomTextFormField(
+              hintText: 'Password',
+              icon: Icons.lock_outline_rounded,
+              obscureText: true,
+              showVisibilityToggle: true,
+              controller: ap.passwordController,
+            ),
+            const SizedBox(height: 24),
+            AuthenticationButton(
+              label: ap.isLoading
+                  ? const SpinKitThreeBounce(
+                      color: Color(0xFF626FFF),
+                      size: 18.0,
+                    )
+                  : const Text('Sign In'),
+              onPress: () {
+                ap.loginUser(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

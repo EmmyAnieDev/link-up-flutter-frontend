@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../screens/profile/profile_screen.dart';
-import 'profile_photo.dart';
 
 class AppBarProfilePhoto extends StatelessWidget {
   const AppBarProfilePhoto({
@@ -24,10 +23,10 @@ class AppBarProfilePhoto extends StatelessWidget {
           padding: const EdgeInsets.all(2),
           decoration:
               BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-          width: 30,
-          child: SizedBox(
-            child: Center(
-              child: const ProfilePhoto(),
+          child: Center(
+            child: CircleAvatar(
+              radius: 15,
+              backgroundImage: AssetImage('images/profile.jpg'),
             ),
           ),
         ),

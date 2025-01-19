@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:link_up/data/provider/auth_provider.dart';
 
-class ProfileTextFormField extends StatelessWidget {
-  const ProfileTextFormField(
-      {super.key,
-      required this.controller,
-      required this.label,
-      required this.icon,
-      this.keyboardType,
-      this.maxLines});
+class ProfileTextFormField extends ConsumerWidget {
+  ProfileTextFormField({
+    super.key,
+    required this.controller,
+    required this.label,
+    required this.icon,
+    this.keyboardType,
+    this.maxLines,
+    this.validator,
+  });
 
   final TextEditingController controller;
   final String label;
   final IconData icon;
   final TextInputType? keyboardType;
   final int? maxLines;
+  final String? Function(String?)? validator;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ap = ref.watch(authProvider);
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -62,6 +68,7 @@ class ProfileTextFormField extends StatelessWidget {
           fontSize: 16,
           color: Colors.black87,
         ),
+        validator: validator,
       ),
     );
   }

@@ -6,6 +6,8 @@ class CustomTextFormField extends StatefulWidget {
   final IconData icon;
   final TextInputType keyboardType;
   final bool showVisibilityToggle;
+  final TextEditingController controller;
+  final String? Function(String?)? validator;
 
   const CustomTextFormField({
     super.key,
@@ -14,6 +16,8 @@ class CustomTextFormField extends StatefulWidget {
     required this.icon,
     this.keyboardType = TextInputType.text,
     this.showVisibilityToggle = false,
+    required this.controller,
+    this.validator,
   });
 
   @override
@@ -32,6 +36,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      controller: widget.controller,
+      validator: widget.validator,
       obscureText: widget.obscureText && _isObscured,
       keyboardType: widget.keyboardType,
       decoration: InputDecoration(

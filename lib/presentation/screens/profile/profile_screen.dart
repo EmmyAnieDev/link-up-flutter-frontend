@@ -1,50 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:link_up/presentation/screens/auth/login_screen.dart';
+import 'package:link_up/data/provider/auth_provider.dart';
+import 'package:link_up/data/provider/user_provider.dart';
 
 import '../../components/profile_photo.dart';
 import '../../widgets/profile_text_form_field.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ap = ref.watch(authProvider);
+    final up = ref.watch(userProvider);
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
+    final nameController = TextEditingController(text: ap.currentUser?.name);
+    final emailController = TextEditingController(text: ap.currentUser?.email);
 
-  @override
-  void initState() {
-    super.initState();
-    _nameController.text = 'Amanda Rodriguez';
-    _emailController.text = 'amanda.rodriguez@example.com';
-  }
+    print(ap.currentUser?.name);
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  void _saveProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Profile updated successfully!'),
-        backgroundColor: const Color(0xFF626FFF),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     return Scaffold(
       backgroundColor: const Color(0xFFFBFCFF),
       appBar: AppBar(
@@ -68,13 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LoginScreen(),
-                ),
-              );
-            },
+            onPressed: () => ap.logoutUser(context),
             icon: const Icon(
               Icons.logout,
               color: Colors.white,
@@ -83,7 +54,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Form(
+        key: formKey,
         child: Column(
           children: [
             Container(
@@ -105,35 +77,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const ProfilePhoto(),
                     const SizedBox(height: 20),
                     ProfileTextFormField(
-                      controller: _nameController,
-                      label: 'Full Name',
+                      controller: nameController,
+                      label: 'Name',
                       icon: Icons.person_outline,
                     ),
                     ProfileTextFormField(
-                      controller: _emailController,
+                      controller: emailController,
                       label: 'Email Address',
                       icon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
-                    ElevatedButton(
-                      onPressed: _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF626FFF),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    SizedBox(
+                      height: 40,
+                      width: 180,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final newName = nameController.text.trim();
+                          final newEmail = emailController.text.trim();
+                          await up.updateUserProfile(
+                              context, newName, newEmail);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF626FFF),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: Text(
-                        'Save Changes',
-                        style: GoogleFonts.openSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        child: up.isLoading
+                            ? const SpinKitThreeBounce(
+                                color: Color(0xFFFFFFFF),
+                                size: 18.0,
+                              )
+                            : Text(
+                                'Save Changes',
+                                style: GoogleFonts.openSans(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
