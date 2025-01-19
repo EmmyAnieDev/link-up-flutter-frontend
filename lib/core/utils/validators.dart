@@ -28,19 +28,12 @@ String? validatePassword(String? value) {
   return null;
 }
 
-String? validateProfileName(String? value) {
+String? validateConfirmPassword(value, password) {
   if (value == null || value.isEmpty) {
-    return 'Please enter your name';
+    return 'Please confirm your password';
   }
-  return null;
-}
-
-String? validateProfileEmail(String? value) {
-  if (value == null || value.isEmpty) {
-    return 'Please enter your email';
-  }
-  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-    return 'Please enter a valid email';
+  if (value != password) {
+    return 'Passwords do not match';
   }
   return null;
 }

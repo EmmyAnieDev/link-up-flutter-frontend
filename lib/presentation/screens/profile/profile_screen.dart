@@ -126,6 +126,36 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            Spacer(flex: 1),
+            SizedBox(
+              child: ElevatedButton(
+                onPressed: () async => up.deleteUser(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 18,
+                  ),
+                ),
+                child: up.isLoading
+                    ? const SpinKitThreeBounce(
+                        color: Color(0xFFFFFFFF),
+                        size: 18.0,
+                      )
+                    : Text(
+                        'Delete Account',
+                        style: GoogleFonts.openSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
           ],
         ),
       ),

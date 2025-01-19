@@ -6,7 +6,6 @@ import 'package:link_up/presentation/screens/auth/login_screen.dart';
 import 'package:link_up/presentation/screens/chat/chat_list_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/services/api_exception.dart';
 import '../../core/utils/show_notifier_snack_bar.dart';
 import '../../core/utils/validators.dart';
 import '../models/user_model.dart';
@@ -23,6 +22,7 @@ class AuthController extends ChangeNotifier {
   final emailController = TextEditingController();
   final nameController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -35,6 +35,30 @@ class AuthController extends ChangeNotifier {
     if (_isLoading) return;
 
     try {
+      final name = nameController.text;
+      final email = emailController.text;
+      final password = passwordController.text;
+      final confirmPassword = confirmPasswordController.text;
+
+      final nameError = validateName(name);
+      final emailError = validateEmail(email);
+      final passwordError = validatePassword(password);
+      final confirmPasswordError =
+          validateConfirmPassword(confirmPassword, password);
+
+      if (nameError != null ||
+          emailError != null ||
+          passwordError != null ||
+          confirmPasswordError != null) {
+        ShowNotifierSnackBar.showSnackBar(
+          context,
+          nameError ?? emailError ?? passwordError ?? confirmPasswordError!,
+          const Color(0xFFFFFFFF),
+          const Color(0xFF626FFF),
+        );
+        return; // Stop further execution if validation fails
+      }
+
       _isLoading = true;
       notifyListeners();
 
@@ -45,31 +69,25 @@ class AuthController extends ChangeNotifier {
       );
 
       final userData = await AuthRepository.registerUser(newUser);
-      print('User data from api $userData');
 
       _currentUser = User.fromJson(userData);
       await saveUserToPreferences(_currentUser!);
-      print('Current User Data: $userData');
 
       await Future.delayed(const Duration(seconds: 3));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful!')),
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const ChatListScreen(),
+        ),
       );
 
       clearController();
     } catch (e) {
-      String errorMessage = 'Registration failed: ';
-      if (e is ApiException) {
-        errorMessage += e.message;
-      } else {
-        errorMessage += e.toString();
-      }
-
-      print(errorMessage);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+      ShowNotifierSnackBar.showSnackBar(
+        context,
+        'Email Already Exists!',
+        const Color(0xFFFFFFFF),
+        const Color(0xFF626FFF),
       );
     } finally {
       _isLoading = false;
@@ -83,7 +101,6 @@ class AuthController extends ChangeNotifier {
     try {
       final email = emailController.text;
       final password = passwordController.text;
-
       final emailError = validateEmail(email);
       final passwordError = validatePassword(password);
 
@@ -112,13 +129,6 @@ class AuthController extends ChangeNotifier {
         MaterialPageRoute(
           builder: (context) => const ChatListScreen(),
         ),
-      );
-
-      ShowNotifierSnackBar.showSnackBar(
-        context,
-        'Login successful!',
-        const Color(0xFFFFFFFF),
-        const Color(0xFF626FFF),
       );
 
       clearController();

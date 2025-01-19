@@ -44,7 +44,7 @@ class UserRepository {
       await AuthRepository.storage.delete(key: 'token');
       print("Token cleared locally.");
 
-      await ApiService.deleteRequest('delete-account', token);
+      await ApiService.deleteRequest('users/delete-account', token);
 
       print("Account deleted from database.");
     } catch (e) {

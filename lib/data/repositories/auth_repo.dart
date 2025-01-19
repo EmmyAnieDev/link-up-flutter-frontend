@@ -27,7 +27,7 @@ class AuthRepository {
 
         final responseData = response['data'];
 
-        if (!response.containsKey(responseData['token'])) {
+        if (!responseData.containsKey('token')) {
           throw ApiException('Missing token data in response');
         }
 
@@ -60,8 +60,6 @@ class AuthRepository {
         'email': email,
         'password': password,
       });
-
-      print(response);
 
       if (response == null || response.isEmpty) {
         throw ApiException('No response from server');
