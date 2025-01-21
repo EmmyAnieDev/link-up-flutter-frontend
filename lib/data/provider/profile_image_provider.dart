@@ -23,6 +23,9 @@ class ProfileImageController extends ChangeNotifier {
   String? _imageFileName;
   bool _isUploading = false;
 
+  // Memory cache for storing image bytes
+  static final Map<String, Uint8List> _imageCache = {};
+
   Uint8List? get imageBytes => _imageBytes;
   String? get imageUrl => _imageUrl;
   String? get imageFileName => _imageFileName;
@@ -33,21 +36,65 @@ class ProfileImageController extends ChangeNotifier {
   }
 
   Future<void> _initializeProfileImage() async {
-    // Wait for the AppUser to be loaded
     await Future.doWhile(() async {
       final ap = _ref.read(authProvider);
       if (ap.currentUser != null) {
-        await _loadProfileImage();
-        return false; // Stop waiting
+        await loadOrFetchProfileImage();
+        return false;
       }
       await Future.delayed(const Duration(milliseconds: 100));
-      return true; // Continue waiting
+      return true;
     });
+  }
+
+  Future<void> loadOrFetchProfileImage() async {
+    final token = await AuthRepository.retrieveToken();
+    final ap = _ref.read(authProvider);
+
+    try {
+      if (ap.currentUser == null || ap.currentUser!.profilePhoto == null) {
+        _imageBytes = null;
+        _imageUrl = null;
+        notifyListeners();
+        return;
+      }
+
+      final imagePath = ap.currentUser!.profilePhoto!;
+
+      // Check if image is in memory cache
+      if (_imageCache.containsKey(imagePath)) {
+        _imageBytes = _imageCache[imagePath];
+        _imageUrl = imagePath;
+        notifyListeners();
+        return;
+      }
+
+      // Reset image bytes when loading new image
+      _imageBytes = null;
+      _imageUrl = null;
+      notifyListeners();
+
+      final imageBytes = await ProfileImageRepository.retrieveUserPhoto(
+        imagePath,
+        token!,
+      );
+
+      // Store in memory cache
+      _imageCache[imagePath] = imageBytes;
+
+      _imageBytes = imageBytes;
+      _imageUrl = imagePath;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading profile image: $e');
+      _imageBytes = null;
+      _imageUrl = null;
+      notifyListeners();
+    }
   }
 
   Future<void> uploadProfileImage() async {
     final token = await AuthRepository.retrieveToken();
-
     final ap = _ref.read(authProvider);
 
     if (_imageBytes == null ||
@@ -61,58 +108,60 @@ class ProfileImageController extends ChangeNotifier {
       notifyListeners();
 
       String base64Image = base64Encode(_imageBytes!);
-      _imageUrl = await ProfileImageRepository.uploadUserPhoto(
+      final newImageUrl = await ProfileImageRepository.uploadUserPhoto(
         base64Image,
         token!,
       );
 
-      final currentUser = User(
-        id: _ref.read(authProvider).currentUser!.id,
-        name: _ref.read(authProvider).currentUser!.name,
-        email: _ref.read(authProvider).currentUser!.email,
-        profilePhoto: _imageUrl,
-        createdAt: _ref.read(authProvider).currentUser!.createdAt,
-        updatedAt: _ref.read(authProvider).currentUser!.updatedAt,
-      );
+      if (newImageUrl != null) {
+        // Clear old image from cache
+        if (_imageUrl != null) {
+          _imageCache.remove(_imageUrl);
+        }
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('currentUser');
-      await _ref.read(authProvider).saveUserToPreferences(currentUser);
+        // Store new image in cache
+        _imageCache[newImageUrl] = _imageBytes!;
+        _imageUrl = newImageUrl;
 
-      _isUploading = false;
-      notifyListeners();
-    } catch (e) {
-      print('Error uploading image: $e');
-    }
-  }
+        final currentUser = User(
+          id: ap.currentUser!.id,
+          name: ap.currentUser!.name,
+          email: ap.currentUser!.email,
+          profilePhoto: _imageUrl,
+          createdAt: ap.currentUser!.createdAt,
+          updatedAt: ap.currentUser!.updatedAt,
+        );
 
-  Future<void> _loadProfileImage() async {
-    final ap = _ref.read(authProvider);
-
-    try {
-      // Clear previous image URL if the user changed
-      if (ap.currentUser == null) {
-        _imageUrl = null;
-      } else if (_imageUrl == null && ap.currentUser?.profilePhoto != null) {
-        _imageUrl = ap.currentUser!.profilePhoto;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('currentUser');
+        await _ref.read(authProvider).saveUserToPreferences(currentUser);
       }
-      notifyListeners();
     } catch (e) {
-      print('Error loading profile image: $e');
-      _imageUrl = null; // Explicitly clear the image URL on error
+      debugPrint('Error uploading image: $e');
+    } finally {
+      _isUploading = false;
       notifyListeners();
     }
   }
 
   Future<void> pickImage(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile =
-        await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800, // Limit image size
+      maxHeight: 800,
+      imageQuality: 85, // Compress image
+    );
 
     if (pickedFile != null) {
       _imageFileName = pickedFile.name;
       _imageBytes = await pickedFile.readAsBytes();
       notifyListeners();
     }
+  }
+
+  // Method to clear cache if needed
+  static void clearCache() {
+    _imageCache.clear();
   }
 }

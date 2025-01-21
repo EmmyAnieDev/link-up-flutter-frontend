@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:link_up/data/provider/auth_provider.dart';
 
+import '../../data/provider/user_provider.dart';
 import '../widgets/authentication_button.dart';
 import '../widgets/custom_text_form_field.dart';
 
@@ -60,6 +61,7 @@ class LoginTextfieldWrapper extends ConsumerWidget {
                   : const Text('Sign In'),
               onPress: () {
                 ap.loginUser(context);
+                ref.watch(userProvider);
               },
             ),
           ],

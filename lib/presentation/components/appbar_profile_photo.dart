@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/provider/profile_image_provider.dart';
 import '../screens/profile/profile_screen.dart';
 
-class AppBarProfilePhoto extends StatelessWidget {
+class AppBarProfilePhoto extends ConsumerWidget {
   const AppBarProfilePhoto({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pip = ref.watch(profileImageProvider);
+
     return InkWell(
       onTap: () {
         Navigator.of(context).push(
@@ -26,7 +30,15 @@ class AppBarProfilePhoto extends StatelessWidget {
           child: Center(
             child: CircleAvatar(
               radius: 15,
-              backgroundImage: AssetImage('images/profile.jpg'),
+              backgroundColor: Colors.transparent,
+              backgroundImage:
+                  pip.imageBytes != null ? MemoryImage(pip.imageBytes!) : null,
+              child: pip.imageBytes == null
+                  ? const Icon(
+                      Icons.person,
+                      size: 20,
+                    )
+                  : null,
             ),
           ),
         ),

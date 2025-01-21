@@ -43,4 +43,23 @@ class ProfileImageRepository {
       throw ApiException('Photo upload failed: ${e.toString()}');
     }
   }
+
+  static Future<Uint8List> retrieveUserPhoto(String path, String token) async {
+    try {
+      final response = await ApiService.getFile(
+        'users/get-photo',
+        {'path': path},
+        token,
+      );
+
+      if (response is Uint8List) {
+        return response;
+      } else {
+        throw ApiException('Unexpected response format: Expected image bytes');
+      }
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Failed to fetch user photo: ${e.toString()}');
+    }
+  }
 }

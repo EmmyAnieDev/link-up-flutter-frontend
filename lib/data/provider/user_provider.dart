@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:link_up/data/models/chat_list_model.dart';
 import 'package:link_up/data/provider/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,15 +20,23 @@ class UserController extends ChangeNotifier {
   User? _currentUser;
   User? get currentUser => _currentUser;
 
-  final ImagePicker _picker = ImagePicker();
-
-  bool _isPhotoLoading = false;
-  bool get isPhotoLoading => _isPhotoLoading;
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  UserController(this.ref);
+  List<ChatListModel> _appUsers = [];
+  List<ChatListModel> get appUsers => _appUsers;
+
+  ChatListModel? _selectedUser;
+  ChatListModel? get selectedUser => _selectedUser;
+
+  UserController(this.ref) {
+    getAppUsers();
+  }
+
+  Future<void> selectUser(ChatListModel user) async {
+    _selectedUser = user;
+    notifyListeners();
+  }
 
   Future<void> updateUserProfile(BuildContext context, name, email) async {
     final token = await AuthRepository.retrieveToken();
@@ -137,6 +145,33 @@ class UserController extends ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Account deleted failed: ${e.toString()}')),
       );
+    }
+  }
+
+  Future<void> getAppUsers() async {
+    print('Fetching users...');
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final token = await AuthRepository.retrieveToken();
+
+      if (token == null) {
+        print('No token found.');
+        _appUsers = [];
+        return;
+      }
+
+      _appUsers = await UserRepository.fetchAppUsers(token);
+      print('Fetched users: $_appUsers');
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching users: $e');
+      _appUsers = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+      print('Loading completed.');
     }
   }
 }

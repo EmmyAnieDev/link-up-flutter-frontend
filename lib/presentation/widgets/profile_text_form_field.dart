@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:link_up/data/provider/auth_provider.dart';
 
 class ProfileTextFormField extends ConsumerWidget {
-  ProfileTextFormField({
+  const ProfileTextFormField({
     super.key,
     required this.controller,
     required this.label,
@@ -23,7 +22,6 @@ class ProfileTextFormField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ap = ref.watch(authProvider);
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(

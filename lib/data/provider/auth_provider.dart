@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:link_up/data/provider/user_provider.dart';
 import 'package:link_up/presentation/screens/auth/login_screen.dart';
 import 'package:link_up/presentation/screens/chat/chat_list_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,10 +13,11 @@ import '../models/user_model.dart';
 import '../repositories/auth_repo.dart';
 
 final authProvider = ChangeNotifierProvider<AuthController>((ref) {
-  return AuthController();
+  return AuthController(ref);
 });
 
 class AuthController extends ChangeNotifier {
+  Ref ref;
   User? _currentUser;
   User? get currentUser => _currentUser;
 
@@ -27,7 +29,7 @@ class AuthController extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  AuthController() {
+  AuthController(this.ref) {
     loadUserFromPreferences();
   }
 
@@ -125,6 +127,8 @@ class AuthController extends ChangeNotifier {
 
       await Future.delayed(const Duration(seconds: 3));
 
+      await ref.read(userProvider).getAppUsers();
+
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const ChatListScreen(),
@@ -207,5 +211,6 @@ class AuthController extends ChangeNotifier {
     emailController.clear();
     nameController.clear();
     passwordController.clear();
+    confirmPasswordController.clear();
   }
 }

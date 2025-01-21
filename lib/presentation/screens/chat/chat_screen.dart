@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../data/models/chat_list_model.dart';
 import '../../widgets/messages.dart';
 
 class ChatScreen extends StatelessWidget {
-  const ChatScreen({super.key});
+  final ChatListModel user;
+
+  const ChatScreen({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +26,7 @@ class ChatScreen extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Amanda Rodriguez',
+          user.name,
           style: GoogleFonts.sansita(
             color: Colors.white,
             fontWeight: FontWeight.w700,

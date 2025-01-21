@@ -43,35 +43,6 @@ class ApiService {
     }
   }
 
-  // Add a new method specifically for file uploads
-  static Future<dynamic> uploadFile(
-      String endpoint, String field, Uint8List fileBytes, String fileName,
-      {String? token}) async {
-    try {
-      final uri = Uri.parse('$_baseUrl/$endpoint');
-      final request = http.MultipartRequest('POST', uri);
-
-      request.headers['Authorization'] = 'Bearer $token';
-
-      // Add file
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          field,
-          fileBytes,
-          filename: fileName,
-        ),
-      );
-
-      // Send the request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      return _processResponse(response);
-    } catch (e) {
-      throw Exception('Error performing file upload: $e');
-    }
-  }
-
   // Function to handle PUT requests with Bearer token
   static Future<dynamic> putRequest(
       String endpoint, Map<String, dynamic> data, String token) async {
@@ -103,6 +74,64 @@ class ApiService {
       return _processResponse(response);
     } catch (e) {
       throw Exception('Error performing DELETE request: $e');
+    }
+  }
+
+  // Add a new method specifically for file retrieval
+  static Future<dynamic> getFile(
+      String endpoint, Map<String, dynamic> data, String token) async {
+    try {
+      // Build query parameters from the data map
+      final queryString = Uri(queryParameters: data).query;
+
+      final url = '$_baseUrl/$endpoint?$queryString';
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      // Check if response is binary (image data)
+      if (response.headers['content-type']?.contains('image/') ?? false) {
+        return response.bodyBytes; // Return raw binary data
+      }
+
+      // Otherwise, assume JSON and process it
+      return _processResponse(response);
+    } catch (e) {
+      throw Exception('Error performing GET request: $e');
+    }
+  }
+
+  // Add a new method specifically for file uploads
+  static Future<dynamic> uploadFile(
+      String endpoint, String field, Uint8List fileBytes, String fileName,
+      {String? token}) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Add file
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          field,
+          fileBytes,
+          filename: fileName,
+        ),
+      );
+
+      // Send the request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _processResponse(response);
+    } catch (e) {
+      throw Exception('Error performing file upload: $e');
     }
   }
 
