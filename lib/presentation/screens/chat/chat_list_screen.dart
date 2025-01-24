@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:link_up/data/provider/user_provider.dart';
 
-import '../../../core/services/pusher_service.dart';
+import '../../../core/services/web_socket_service.dart';
 import '../../components/appbar_profile_photo.dart';
 import '../../components/chat_list_view.dart';
 
@@ -15,14 +16,14 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen> {
-  late PusherWebSocket _pusherWebSocket;
+  late WebSocketService _pusherWebSocket;
 
   @override
   void initState() {
     super.initState();
 
     // Initialize PusherWebSocket with WidgetRef
-    _pusherWebSocket = PusherWebSocket(ref);
+    _pusherWebSocket = WebSocketService(ref);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
@@ -62,7 +63,12 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: SpinKitThreeBounce(
+                color: Color(0xFF626FFF),
+                size: 18.0,
+              ),
+            )
           : users.isEmpty
               ? const Center(child: Text('No users found'))
               : ChatListView(chatList: users),

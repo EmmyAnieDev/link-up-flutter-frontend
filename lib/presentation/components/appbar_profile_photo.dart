@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../app/router/go_router.dart';
 import '../../data/provider/profile_image_provider.dart';
-import '../screens/profile/profile_screen.dart';
 
 class AppBarProfilePhoto extends ConsumerWidget {
   const AppBarProfilePhoto({
@@ -14,13 +15,7 @@ class AppBarProfilePhoto extends ConsumerWidget {
     final pip = ref.watch(profileImageProvider);
 
     return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const ProfileScreen(),
-          ),
-        );
-      },
+      onTap: () => context.go(AppRouter.profilePath),
       child: Padding(
         padding: const EdgeInsets.only(right: 10),
         child: Container(

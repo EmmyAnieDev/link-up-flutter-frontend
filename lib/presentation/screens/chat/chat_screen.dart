@@ -3,13 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:link_up/presentation/components/message_bubbles.dart';
 
-import '../../../data/models/chat_list_model.dart';
 import '../../../data/provider/chat_provider.dart';
+import '../../../data/provider/user_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  final ChatListModel selectedUser;
-
-  const ChatScreen({super.key, required this.selectedUser});
+  const ChatScreen({super.key});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -25,12 +23,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     // Fetch messages and ensure initial scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(chatProvider)
-          .fetchMessages(widget.selectedUser.id.toString())
-          .then((_) {
-        _scrollToBottomInitially();
-      });
+      final selectedUser = ref.read(userProvider).selectedUser;
+      if (selectedUser != null) {
+        ref
+            .read(chatProvider)
+            .fetchMessages(selectedUser.id.toString())
+            .then((_) {
+          _scrollToBottomInitially();
+        });
+      }
     });
   }
 
@@ -43,17 +44,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
-    ref.read(chatProvider).sendMessage(
-          _messageController.text.trim(),
-          widget.selectedUser.id.toString(),
-        );
-
-    _messageController.clear();
+    final selectedUser = ref.read(userProvider).selectedUser;
+    if (selectedUser != null) {
+      ref.read(chatProvider).sendMessage(
+            _messageController.text.trim(),
+            selectedUser.id.toString(),
+          );
+      _messageController.clear();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
+    final up = ref.watch(userProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFBFCFF),
@@ -68,7 +72,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ),
         title: Text(
-          widget.selectedUser.name,
+          up.selectedUser?.name ?? '',
           style: GoogleFonts.sansita(
             color: Colors.white,
             fontWeight: FontWeight.w700,

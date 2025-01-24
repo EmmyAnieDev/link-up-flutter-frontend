@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:link_up/data/provider/user_provider.dart';
-import 'package:link_up/presentation/screens/auth/login_screen.dart';
-import 'package:link_up/presentation/screens/chat/chat_list_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../app/router/go_router.dart';
 import '../../core/utils/show_notifier_snack_bar.dart';
 import '../../core/utils/validators.dart';
 import '../models/user_model.dart';
@@ -77,11 +77,9 @@ class AuthController extends ChangeNotifier {
 
       await Future.delayed(const Duration(seconds: 3));
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const ChatListScreen(),
-        ),
-      );
+      await ref.read(userProvider).getAppUsers();
+
+      context.go(AppRouter.chatListPath);
 
       clearController();
     } catch (e) {
@@ -131,11 +129,7 @@ class AuthController extends ChangeNotifier {
 
       await ref.read(userProvider).getAppUsers();
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const ChatListScreen(),
-        ),
-      );
+      context.go(AppRouter.chatListPath);
 
       clearController();
     } catch (e) {
@@ -171,11 +165,7 @@ class AuthController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('currentUser');
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        ),
-      );
+      context.go(AppRouter.loginPath);
 
       ShowNotifierSnackBar.showSnackBar(
         context,

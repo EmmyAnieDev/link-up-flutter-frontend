@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../app/config/api_config.dart';
+import '../../app/router/go_router.dart';
 import '../../data/models/chat_list_model.dart';
 import '../../data/provider/user_provider.dart';
-import '../screens/chat/chat_screen.dart';
 
 class ChatListView extends ConsumerWidget {
   final List<ChatListModel> chatList;
@@ -26,11 +28,7 @@ class ChatListView extends ConsumerWidget {
               InkWell(
                 onTap: () {
                   up.selectUser(chat);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ChatScreen(selectedUser: chat),
-                    ),
-                  );
+                  context.push(AppRouter.chatPath);
                 },
                 child: Row(
                   children: [
@@ -38,20 +36,20 @@ class ChatListView extends ConsumerWidget {
                       backgroundColor: Colors.grey[200],
                       radius: 25,
                       child: ClipOval(
-                          child: CachedNetworkImage(
-                              imageUrl:
-                                  "http://127.0.0.1:8000${chat.profilePhoto}" ??
-                                      '',
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) =>
-                                  CircularProgressIndicator(),
-                              errorWidget: (context, url, error) => const Icon(
-                                    Icons.person,
-                                    size: 30,
-                                    color: Colors.grey,
-                                  ))),
+                        child: CachedNetworkImage(
+                          imageUrl: "${Api.appURL}${chat.profilePhoto}",
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => const Icon(
+                            Icons.person,
+                            size: 30,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(

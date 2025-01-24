@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:link_up/presentation/components/login_textfield_wrapper.dart';
 
+import '../../../app/router/go_router.dart';
 import '../../components/logo_brand.dart';
 import '../../components/new_or_have_account_button.dart';
 import '../../widgets/welcome_create_account_text.dart';
-import 'register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -58,13 +59,7 @@ class LoginScreen extends StatelessWidget {
                   child: NewOrHaveAccountButton(
                     text: 'New to Linkup? ',
                     buttonText: 'Create Account',
-                    onPress: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
+                    onPress: () => context.go(AppRouter.registerPath),
                   ),
                 ),
                 const SizedBox(height: 20),

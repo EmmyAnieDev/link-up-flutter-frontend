@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:link_up/data/provider/auth_provider.dart';
 import 'package:link_up/data/provider/user_provider.dart';
 
+import '../../../app/router/go_router.dart';
 import '../../components/profile_photo.dart';
 import '../../widgets/profile_text_form_field.dart';
 
@@ -28,7 +30,7 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF626FFF),
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.go(AppRouter.chatListPath),
           icon: const Icon(
             Icons.arrow_back_ios_new,
             color: Colors.white,
