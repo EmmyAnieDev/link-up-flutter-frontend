@@ -1,16 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:link_up/data/provider/user_provider.dart';
 
-import '../../../data/provider/user_provider.dart';
+import '../../../core/services/pusher_service.dart';
 import '../../components/appbar_profile_photo.dart';
 import '../../components/chat_list_view.dart';
 
-class ChatListScreen extends ConsumerWidget {
+class ChatListScreen extends ConsumerStatefulWidget {
   const ChatListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
+}
+
+class _ChatListScreenState extends ConsumerState<ChatListScreen> {
+  late PusherWebSocket _pusherWebSocket;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize PusherWebSocket with WidgetRef
+    _pusherWebSocket = PusherWebSocket(ref);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        _pusherWebSocket.connect();
+      } catch (e) {
+        print('Error connecting WebSocket: $e');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pusherWebSocket.disconnect();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userController = ref.watch(userProvider);
     final users = userController.appUsers;
     final isLoading = userController.isLoading;

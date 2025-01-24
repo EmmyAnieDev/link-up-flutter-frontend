@@ -28,7 +28,7 @@ class ChatListView extends ConsumerWidget {
                   up.selectUser(chat);
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => ChatScreen(user: chat),
+                      builder: (context) => ChatScreen(selectedUser: chat),
                     ),
                   );
                 },

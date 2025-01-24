@@ -121,6 +121,8 @@ class AuthController extends ChangeNotifier {
 
       final loggedInUser = await AuthRepository.loginUser(email, password);
 
+      final token = await AuthRepository.retrieveToken();
+
       _currentUser = loggedInUser;
       await saveUserToPreferences(_currentUser!);
       print('Logged-in User Data: ${_currentUser?.toJson()}');

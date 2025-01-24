@@ -34,6 +34,7 @@ class ReceivedMessageBubble extends StatelessWidget {
           ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               message,

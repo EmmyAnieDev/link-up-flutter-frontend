@@ -7,8 +7,8 @@ plugins {
 
 android {
     namespace = "com.example.link_up"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 34 // Replace flutter.compileSdkVersion with the SDK version you're using
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -20,20 +20,15 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.link_up"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdk = 21 // Replace minSdkVersion with an explicit value
+        targetSdk = 33 // Replace flutter.targetSdkVersion with the SDK version you're targeting
+        versionCode = 1 // Replace flutter.versionCode with an explicit value
+        versionName = "1.0.0" // Replace flutter.versionName with an explicit value
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
         }
     }
@@ -42,3 +37,4 @@ android {
 flutter {
     source = "../.."
 }
+
