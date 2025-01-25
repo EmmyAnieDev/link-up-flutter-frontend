@@ -23,6 +23,12 @@ class UserController extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isUpdateLoading = false;
+  bool _isDeleteLoading = false;
+
+  bool get isUpdateLoading => _isUpdateLoading;
+  bool get isDeleteLoading => _isDeleteLoading;
+
   List<ChatListModel> _appUsers = [];
   List<ChatListModel> get appUsers => _appUsers;
 
@@ -52,7 +58,7 @@ class UserController extends ChangeNotifier {
     }
 
     try {
-      _isLoading = true;
+      _isUpdateLoading = true;
       notifyListeners();
 
       final nameError = validateName(name);
@@ -68,10 +74,7 @@ class UserController extends ChangeNotifier {
         return;
       }
 
-      final updatedUser = User(
-        name: name,
-        email: email,
-      );
+      final updatedUser = User(name: name, email: email);
 
       final updatedUserData =
           await UserRepository.updateUser(updatedUser, token);
@@ -97,19 +100,16 @@ class UserController extends ChangeNotifier {
         const Color(0xFFFFFFFF),
       );
     } finally {
-      _isLoading = false;
+      _isUpdateLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> debugPrintCurrentPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userData = prefs.getString('currentUser');
-    print('Current data in preferences: $userData');
-  }
-
   Future<void> deleteUser(BuildContext context) async {
     try {
+      _isDeleteLoading = true;
+      notifyListeners();
+
       final token = await AuthRepository.retrieveToken();
 
       if (token == null) {
@@ -145,11 +145,19 @@ class UserController extends ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Account deleted failed: ${e.toString()}')),
       );
+    } finally {
+      _isDeleteLoading = false;
+      notifyListeners();
     }
   }
 
+  Future<void> debugPrintCurrentPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userData = prefs.getString('currentUser');
+    print('Current data in preferences: $userData');
+  }
+
   Future<void> getAppUsers() async {
-    print('Fetching users...');
     try {
       _isLoading = true;
       notifyListeners();
@@ -163,7 +171,21 @@ class UserController extends ChangeNotifier {
       }
 
       _appUsers = await UserRepository.fetchAppUsers(token);
-      print('Fetched users: $_appUsers');
+
+      // Fetch profile photo bytes for each user
+      for (var user in _appUsers) {
+        if (user.profilePhoto != null) {
+          try {
+            final photoBytes = await UserRepository.fetchAppUsersProfilePhoto(
+              user.profilePhoto!,
+              token,
+            );
+            user.setProfilePhotoBytes(photoBytes);
+          } catch (e) {
+            print('Error fetching profile photo for ${user.name}: $e');
+          }
+        }
+      }
       notifyListeners();
     } catch (e) {
       print('Error fetching users: $e');
@@ -171,7 +193,6 @@ class UserController extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
-      print('Loading completed.');
     }
   }
 }

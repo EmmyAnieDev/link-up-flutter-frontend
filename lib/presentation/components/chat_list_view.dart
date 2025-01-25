@@ -1,9 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/config/api_config.dart';
 import '../../app/router/go_router.dart';
 import '../../data/models/chat_list_model.dart';
 import '../../data/provider/user_provider.dart';
@@ -36,19 +34,25 @@ class ChatListView extends ConsumerWidget {
                       backgroundColor: Colors.grey[200],
                       radius: 25,
                       child: ClipOval(
-                        child: CachedNetworkImage(
-                          imageUrl: "${Api.appURL}${chat.profilePhoto}",
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              CircularProgressIndicator(),
-                          errorWidget: (context, url, error) => const Icon(
-                            Icons.person,
-                            size: 30,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        child: chat.profilePhotoBytes != null
+                            ? Image.memory(
+                                chat.profilePhotoBytes!,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.person,
+                                    size: 30,
+                                    color: Colors.grey,
+                                  );
+                                },
+                              )
+                            : const Icon(
+                                Icons.person,
+                                size: 30,
+                                color: Colors.grey,
+                              ),
                       ),
                     ),
                     const SizedBox(width: 10),

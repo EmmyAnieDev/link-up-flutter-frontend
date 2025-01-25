@@ -1,31 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:link_up/data/provider/auth_provider.dart';
+import 'package:link_up/data/provider/user_provider.dart';
 import 'package:link_up/data/repositories/auth_repo.dart';
 
+import '../models/message_model.dart';
 import '../repositories/chat_repo.dart';
 
 final chatProvider = ChangeNotifierProvider<ChatController>((ref) {
   return ChatController(ref);
 });
 
-class Message {
-  final String content;
-  final int? senderId; // Made nullable
-  final DateTime timestamp;
-  final bool isMe;
-
-  Message({
-    required this.content,
-    required this.senderId,
-    required this.timestamp,
-    required this.isMe,
-  });
-}
-
 class ChatController extends ChangeNotifier {
   Ref ref;
   final List<Message> messages = [];
+  final TextEditingController messageController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+
   bool isConnected = false;
   String connectionStatus = 'Disconnected';
   bool isSending = false;
@@ -33,14 +24,28 @@ class ChatController extends ChangeNotifier {
 
   ChatController(this.ref);
 
+  Future<void> initializeChat() async {
+    final selectedUser = ref.read(userProvider).selectedUser;
+    if (selectedUser != null) {
+      await fetchMessages(selectedUser.id.toString());
+      scrollToBottomInitially();
+    }
+  }
+
+  void scrollToBottomInitially() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (scrollController.hasClients) {
+        scrollController.jumpTo(scrollController.position.minScrollExtent);
+      }
+    });
+  }
+
   Future<void> fetchMessages(String otherUserId) async {
     final currentUserId = ref.watch(authProvider).currentUser?.id;
     final token = await AuthRepository.retrieveToken();
 
-    if (token == null) {
-      print('Token not found');
-      return;
-    }
+    if (token == null || currentUserId == null) return;
 
     isFetching = true;
     notifyListeners();
@@ -88,40 +93,48 @@ class ChatController extends ChangeNotifier {
     }
   }
 
-  Future<bool> sendMessage(String content, String recipientId) async {
-    final currentUser = ref.watch(authProvider).currentUser;
+  Future<void> sendMessage() async {
+    if (messageController.text.trim().isEmpty) return;
+
+    final currentUser = ref.read(authProvider).currentUser;
+    final selectedUser = ref.read(userProvider).selectedUser;
     final token = await AuthRepository.retrieveToken();
-    if (token == null) return false;
+
+    if (token == null || selectedUser == null) return;
+
+    // Optimistically add the message to the list
+    final pendingMessage = Message(
+      content: messageController.text.trim(),
+      senderId: currentUser?.id,
+      timestamp: DateTime.now(),
+      isMe: true,
+    );
+
+    messages.add(pendingMessage);
+    notifyListeners();
+
+    messageController.clear();
 
     isSending = true;
     notifyListeners();
 
     try {
-      final success =
-          await ChatRepository.sendMessage(content, recipientId, token);
-
-      print(success);
-
-      print('Message retreived succesful');
+      final success = await ChatRepository.sendMessage(
+        pendingMessage.content,
+        selectedUser.id.toString(),
+        token,
+      );
 
       if (success) {
-        // Only add message to local list if API call was successful
-        print('Message was successful');
-        final message = Message(
-          content: content,
-          senderId: currentUser?.id,
-          timestamp: DateTime.now(),
-          isMe: true,
-        );
-        messages.add(message);
-        print('Message added to list');
-        notifyListeners();
+        pendingMessage.status = 'sent';
+      } else {
+        pendingMessage.status = 'failed';
       }
-
-      return success;
+      notifyListeners();
     } catch (e) {
       print('Error sending message: $e');
-      return false;
+      messages.remove(pendingMessage);
+      notifyListeners();
     } finally {
       isSending = false;
       notifyListeners();
@@ -130,6 +143,8 @@ class ChatController extends ChangeNotifier {
 
   @override
   void dispose() {
+    messageController.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 }

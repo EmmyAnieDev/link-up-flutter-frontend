@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class ChatListModel {
   final int id;
   final String name;
@@ -5,6 +7,7 @@ class ChatListModel {
   final String lastMessage;
   final DateTime lastMessageTime;
   final int unreadCount;
+  Uint8List? profilePhotoBytes;
 
   ChatListModel({
     required this.id,
@@ -13,6 +16,7 @@ class ChatListModel {
     required this.lastMessage,
     required this.lastMessageTime,
     required this.unreadCount,
+    this.profilePhotoBytes,
   });
 
   factory ChatListModel.fromMap(Map<String, dynamic> map) {
@@ -25,5 +29,10 @@ class ChatListModel {
           map['lastMessageTime'] ?? DateTime.now().toIso8601String()),
       unreadCount: map['unreadCount'] ?? 0,
     );
+  }
+
+  // Method to set profile photo bytes
+  void setProfilePhotoBytes(Uint8List? bytes) {
+    profilePhotoBytes = bytes;
   }
 }

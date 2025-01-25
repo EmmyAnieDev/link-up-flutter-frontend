@@ -4,6 +4,7 @@ import 'package:link_up/app/router/go_router.dart';
 import 'package:link_up/presentation/components/logo_brand.dart';
 import 'package:link_up/presentation/components/new_or_have_account_button.dart';
 import 'package:link_up/presentation/components/register_textfield_wrapper.dart';
+import 'package:link_up/presentation/widgets/background_stack_circles.dart';
 import 'package:link_up/presentation/widgets/welcome_create_account_text.dart';
 
 class RegisterScreen extends StatelessWidget {
@@ -12,7 +13,7 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -24,33 +25,43 @@ class RegisterScreen extends StatelessWidget {
             ],
           ),
         ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                LogoBrand(),
-                const Spacer(flex: 1),
-                WelcomeCreateAccountText(
-                  label: 'Create Account',
-                  subLabel: 'Join and start connecting!',
-                ),
-                const SizedBox(height: 40),
-                RegisterTextfieldWrapper(),
-                const Spacer(flex: 1),
-                Center(
-                  child: NewOrHaveAccountButton(
-                    text: 'Already have an account? ',
-                    buttonText: 'Login here',
-                    onPress: () => context.go(AppRouter.loginPath),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            BackgroundTopRightStackCircle(),
+            BackgroundBottomLeftStackCircle(),
+            SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 40),
+                      LogoBrand(),
+                      const SizedBox(height: 50),
+                      WelcomeCreateAccountText(
+                        label: 'Create Account',
+                        subLabel: 'Join and start connecting!',
+                      ),
+                      const SizedBox(height: 20),
+                      RegisterTextfieldWrapper(),
+                      const SizedBox(height: 70),
+                      Center(
+                        child: NewOrHaveAccountButton(
+                          text: 'Already have an account? ',
+                          buttonText: 'Login here',
+                          onPress: () => context.go(AppRouter.loginPath),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

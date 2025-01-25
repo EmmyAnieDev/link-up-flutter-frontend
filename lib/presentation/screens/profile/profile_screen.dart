@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:link_up/data/provider/auth_provider.dart';
-import 'package:link_up/data/provider/user_provider.dart';
 
 import '../../../app/router/go_router.dart';
-import '../../components/profile_photo.dart';
-import '../../widgets/profile_text_form_field.dart';
+import '../../components/profile_body.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -16,14 +13,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ap = ref.watch(authProvider);
-    final up = ref.watch(userProvider);
 
-    final nameController = TextEditingController(text: ap.currentUser?.name);
-    final emailController = TextEditingController(text: ap.currentUser?.email);
-
-    print(ap.currentUser?.name);
-
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     return Scaffold(
       backgroundColor: const Color(0xFFFBFCFF),
       appBar: AppBar(
@@ -56,111 +46,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Form(
-        key: formKey,
-        child: Column(
-          children: [
-            Container(
-              height: 120,
-              decoration: const BoxDecoration(
-                color: Color(0xFF626FFF),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-            ),
-            Transform.translate(
-              offset: const Offset(0, -60),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const ProfilePhoto(),
-                    const SizedBox(height: 20),
-                    ProfileTextFormField(
-                      controller: nameController,
-                      label: 'Name',
-                      icon: Icons.person_outline,
-                    ),
-                    ProfileTextFormField(
-                      controller: emailController,
-                      label: 'Email Address',
-                      icon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    SizedBox(
-                      height: 40,
-                      width: 180,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final newName = nameController.text.trim();
-                          final newEmail = emailController.text.trim();
-                          await up.updateUserProfile(
-                              context, newName, newEmail);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF626FFF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: up.isLoading
-                            ? const SpinKitThreeBounce(
-                                color: Color(0xFFFFFFFF),
-                                size: 18.0,
-                              )
-                            : Text(
-                                'Save Changes',
-                                style: GoogleFonts.openSans(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Spacer(flex: 1),
-            SizedBox(
-              child: ElevatedButton(
-                onPressed: () async => up.deleteUser(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 18,
-                  ),
-                ),
-                child: up.isLoading
-                    ? const SpinKitThreeBounce(
-                        color: Color(0xFFFFFFFF),
-                        size: 18.0,
-                      )
-                    : Text(
-                        'Delete Account',
-                        style: GoogleFonts.openSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-          ],
-        ),
-      ),
+      body: ProfileBody(),
     );
   }
 }

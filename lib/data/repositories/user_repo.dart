@@ -1,11 +1,18 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:link_up/data/repositories/auth_repo.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/api_exception.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/cache_service.dart';
 import '../models/chat_list_model.dart';
 import '../models/user_model.dart';
 
 class UserRepository {
+  static const String _imageCachePrefix = 'user_image_cache_';
+
   static Future<Map<String, dynamic>> updateUser(User user, token) async {
     try {
       final Map<String, dynamic> payload = {
@@ -74,6 +81,38 @@ class UserRepository {
       }
     } catch (e) {
       throw Exception('Failed to fetch App users: $e');
+    }
+  }
+
+  static Future<Uint8List?> fetchAppUsersProfilePhoto(path, token) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Generate a unique cache key based on the image path
+    final cacheKey = _imageCachePrefix + path.hashCode.toString();
+
+    // Check if image is cached
+    final cachedImageBase64 = prefs.getString(cacheKey);
+
+    if (cachedImageBase64 != null) {
+      // Convert base64 back to Uint8List
+      return base64Decode(cachedImageBase64);
+    }
+
+    try {
+      final response = await ApiService.getFile(
+        'users/get-photo',
+        {'path': path},
+        token,
+      );
+
+      if (response is Uint8List) {
+        await CacheService.cacheImage(cacheKey, response);
+        return response;
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching profile photo: $e');
+      return null;
     }
   }
 }
