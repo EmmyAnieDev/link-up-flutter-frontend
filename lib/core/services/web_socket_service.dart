@@ -77,7 +77,11 @@ class WebSocketService {
         final messageData =
             jsonDecode(eventData['data']) as Map<String, dynamic>;
 
+        // Handle new message
         ref.read(chatProvider).handleNewMessage(messageData);
+
+        // Trigger fetching of unread counts
+        ref.read(chatProvider).fetchUnreadCounts();
       } catch (e) {
         print('Error parsing chat-event data: $e');
       }

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:link_up/data/provider/user_provider.dart';
 
 import '../../../core/services/web_socket_service.dart';
+import '../../../data/provider/chat_provider.dart';
 import '../../components/appbar_profile_photo.dart';
 import '../../components/chat_list_view.dart';
 
@@ -32,6 +33,8 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
         print('Error connecting WebSocket: $e');
       }
     });
+
+    ref.read(chatProvider).fetchUnreadCounts();
   }
 
   @override

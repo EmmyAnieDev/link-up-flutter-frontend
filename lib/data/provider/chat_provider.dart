@@ -14,9 +14,11 @@ final chatProvider = ChangeNotifierProvider<ChatController>((ref) {
 class ChatController extends ChangeNotifier {
   Ref ref;
   final List<Message> messages = [];
+  List<Map<String, dynamic>> unreadCounts = [];
   final TextEditingController messageController = TextEditingController();
   final ScrollController scrollController = ScrollController();
 
+  bool isLoading = false;
   bool isConnected = false;
   String connectionStatus = 'Disconnected';
   bool isSending = false;
@@ -73,26 +75,6 @@ class ChatController extends ChangeNotifier {
     }
   }
 
-  void handleNewMessage(Map<String, dynamic> data) {
-    try {
-      print('New message received: ${data['message']}');
-      final currentUserId = ref.watch(authProvider).currentUser?.id;
-      final senderId = data['senderId'] as int?;
-
-      final message = Message(
-        content: data['message'] ?? '',
-        senderId: senderId,
-        timestamp: DateTime.now(),
-        isMe: senderId == currentUserId,
-      );
-
-      messages.add(message);
-      notifyListeners();
-    } catch (e) {
-      print('Error handling new message: $e');
-    }
-  }
-
   Future<void> sendMessage() async {
     if (messageController.text.trim().isEmpty) return;
 
@@ -127,6 +109,8 @@ class ChatController extends ChangeNotifier {
 
       if (success) {
         pendingMessage.status = 'sent';
+        // Mark messages as read for the current chat
+        await removeUnreadMessageCounts(selectedUser.id.toString());
       } else {
         pendingMessage.status = 'failed';
       }
@@ -138,6 +122,75 @@ class ChatController extends ChangeNotifier {
     } finally {
       isSending = false;
       notifyListeners();
+    }
+  }
+
+  void handleNewMessage(Map<String, dynamic> data) {
+    try {
+      final currentUserId = ref.watch(authProvider).currentUser?.id;
+      final selectedUser = ref.read(userProvider).selectedUser;
+
+      final senderId = data['senderId'] as int?;
+      final receiverId = data['receiverId'] as int?;
+
+      final isCurrentChat =
+          (selectedUser != null && selectedUser.id == senderId);
+
+      final message = Message(
+        content: data['message'] ?? '',
+        senderId: senderId,
+        timestamp: DateTime.now(),
+        isMe: senderId == currentUserId,
+      );
+
+      messages.add(message);
+
+      // If the message is from the current chat, mark it as read
+      if (isCurrentChat) {
+        removeUnreadMessageCounts(senderId.toString());
+      }
+
+      notifyListeners();
+    } catch (e) {
+      print('Error handling new message: $e');
+    }
+  }
+
+  Future<void> fetchUnreadCounts() async {
+    final token = await AuthRepository.retrieveToken();
+
+    if (token == null) return;
+
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      final fetchedUnreadCounts = await ChatRepository.fetchUnreadCounts(token);
+      unreadCounts = fetchedUnreadCounts;
+      notifyListeners();
+    } catch (error) {
+      print('Error fetching unread counts: $error');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeUnreadMessageCounts(String senderId) async {
+    final token = await AuthRepository.retrieveToken();
+
+    if (token == null) return;
+
+    try {
+      final response =
+          await ChatRepository.removeUnreadMessageCounts(senderId, token);
+
+      if (response['success']) {
+        // Optionally refresh unread counts
+        await fetchUnreadCounts();
+      }
+    } catch (e) {
+      print('Error marking messages as read: $e');
     }
   }
 

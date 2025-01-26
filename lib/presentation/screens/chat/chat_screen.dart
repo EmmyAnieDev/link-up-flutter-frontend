@@ -34,7 +34,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF626FFF),
         leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.of(context).pop();
+            ref.read(userProvider).clearSelectedUser();
+          },
           icon: const Icon(
             Icons.arrow_back_ios_new,
             color: Colors.white,

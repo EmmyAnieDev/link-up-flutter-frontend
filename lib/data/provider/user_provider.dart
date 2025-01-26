@@ -44,6 +44,11 @@ class UserController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearSelectedUser() {
+    _selectedUser = null;
+    notifyListeners();
+  }
+
   Future<void> updateUserProfile(BuildContext context, name, email) async {
     final token = await AuthRepository.retrieveToken();
 
@@ -149,12 +154,6 @@ class UserController extends ChangeNotifier {
       _isDeleteLoading = false;
       notifyListeners();
     }
-  }
-
-  Future<void> debugPrintCurrentPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userData = prefs.getString('currentUser');
-    print('Current data in preferences: $userData');
   }
 
   Future<void> getAppUsers() async {

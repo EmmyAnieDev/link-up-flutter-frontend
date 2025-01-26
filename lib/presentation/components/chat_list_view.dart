@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:link_up/data/provider/chat_provider.dart';
 
 import '../../app/router/go_router.dart';
 import '../../data/models/chat_list_model.dart';
 import '../../data/provider/user_provider.dart';
+import '../widgets/unread_counts_indicator.dart';
 
 class ChatListView extends ConsumerWidget {
   final List<ChatListModel> chatList;
@@ -13,7 +15,7 @@ class ChatListView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final up = ref.read(userProvider);
+    final up = ref.watch(chatProvider);
 
     return Padding(
       padding: const EdgeInsets.only(top: 15, right: 8, left: 8),
@@ -21,12 +23,21 @@ class ChatListView extends ConsumerWidget {
         itemCount: chatList.length,
         itemBuilder: (context, index) {
           final chat = chatList[index];
+          final unreadCount = up.unreadCounts.firstWhere(
+            (element) => element['sender_id'] == chat.id,
+            orElse: () => {'unread_count': 0},
+          )['unread_count'];
+
           return Column(
             children: [
               InkWell(
                 onTap: () {
-                  up.selectUser(chat);
+                  ref.read(userProvider).selectUser(chat);
                   context.push(AppRouter.chatPath);
+                  // Mark messages as read for the selected user
+                  ref
+                      .read(chatProvider)
+                      .removeUnreadMessageCounts(chat.id.toString());
                 },
                 child: Row(
                   children: [
@@ -83,6 +94,9 @@ class ChatListView extends ConsumerWidget {
                     const SizedBox(width: 10),
                     Column(
                       children: [
+                        if (unreadCount > 0)
+                          UnreadCountsIndicator(unreadCount: unreadCount),
+                        const SizedBox(height: 3),
                         Text(
                           '${chat.lastMessageTime.hour}:${chat.lastMessageTime.minute.toString().padLeft(2, '0')}',
                           style: const TextStyle(
@@ -91,26 +105,6 @@ class ChatListView extends ConsumerWidget {
                             fontSize: 11,
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        if (chat.unreadCount > 0)
-                          Container(
-                            width: 20,
-                            height: 20,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFF626FFF),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${chat.unreadCount}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   ],

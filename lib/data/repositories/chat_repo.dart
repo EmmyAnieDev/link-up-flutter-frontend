@@ -40,4 +40,31 @@ class ChatRepository {
       return false;
     }
   }
+
+  static Future<List<Map<String, dynamic>>> fetchUnreadCounts(
+      String token) async {
+    final response =
+        await ApiService.getRequest('users/unread-messages-count', token);
+
+    if (response['status'] == 200) {
+      final List<dynamic> data = response['data'];
+      return List<Map<String, dynamic>>.from(
+          data.map((e) => Map<String, dynamic>.from(e)));
+    } else {
+      throw Exception('Failed to load unread counts');
+    }
+  }
+
+  static Future<Map<String, dynamic>> removeUnreadMessageCounts(
+      String senderId, String token) async {
+    final response = await ApiService.postRequest(
+      'users/remove-unread-messages-count',
+      {
+        'sender_id': senderId,
+      },
+      token: token,
+    );
+
+    return response;
+  }
 }
