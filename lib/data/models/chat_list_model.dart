@@ -4,8 +4,8 @@ class ChatListModel {
   final int id;
   final String name;
   final String? profilePhoto;
-  final String lastMessage;
-  final DateTime lastMessageTime;
+  final String? lastMessage;
+  final DateTime? lastMessageTime;
   final int unreadCount;
   Uint8List? profilePhotoBytes;
 
@@ -14,7 +14,7 @@ class ChatListModel {
     required this.name,
     this.profilePhoto,
     required this.lastMessage,
-    required this.lastMessageTime,
+    this.lastMessageTime,
     required this.unreadCount,
     this.profilePhotoBytes,
   });
@@ -24,9 +24,10 @@ class ChatListModel {
       id: map['id'],
       name: map['name'] ?? '',
       profilePhoto: map['image'],
-      lastMessage: map['lastMessage'] ?? 'No messages yet',
-      lastMessageTime: DateTime.parse(
-          map['lastMessageTime'] ?? DateTime.now().toIso8601String()),
+      lastMessage: map['last_message'] ?? '',
+      lastMessageTime: map['last_message_time'] != null
+          ? DateTime.parse(map['last_message_time'])
+          : null,
       unreadCount: map['unreadCount'] ?? 0,
     );
   }

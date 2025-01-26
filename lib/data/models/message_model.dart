@@ -29,7 +29,7 @@ class Message {
     return {
       'content': content,
       'sender_id': senderId,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': timestamp,
       'isMe': isMe, // Optional if needed for local state
       'status': status
     };

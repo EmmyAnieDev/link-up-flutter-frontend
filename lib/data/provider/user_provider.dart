@@ -194,4 +194,29 @@ class UserController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void updateLastMessage(userId, lastMessage, lastMessageTime) {
+    final index = _appUsers.indexWhere((user) => user.id == userId);
+    if (index != -1) {
+      _appUsers[index] = ChatListModel(
+        id: _appUsers[index].id,
+        name: _appUsers[index].name,
+        profilePhoto: _appUsers[index].profilePhoto,
+        lastMessage: lastMessage,
+        lastMessageTime: lastMessageTime,
+        unreadCount: _appUsers[index].unreadCount,
+        profilePhotoBytes: _appUsers[index].profilePhotoBytes,
+      );
+      notifyListeners();
+    }
+  }
+
+  void sortChatList() {
+    _appUsers.sort((a, b) {
+      final timeA = a.lastMessageTime ?? DateTime(1970, 1, 1);
+      final timeB = b.lastMessageTime ?? DateTime(1970, 1, 1);
+      return timeB.compareTo(timeA); // Sort in descending order
+    });
+    notifyListeners();
+  }
 }

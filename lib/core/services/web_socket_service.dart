@@ -9,6 +9,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../app/config/api_config.dart';
 import '../../app/config/web_socket_config.dart';
 import '../../data/provider/chat_provider.dart';
+import '../../data/provider/user_provider.dart';
 
 class WebSocketService {
   final WidgetRef ref;
@@ -71,11 +72,22 @@ class WebSocketService {
     }
   }
 
+  // Handle event from the backend.
   void _handleEvent(Map<String, dynamic> eventData) {
     if (eventData['event'] == 'chat-event') {
       try {
         final messageData =
             jsonDecode(eventData['data']) as Map<String, dynamic>;
+
+        // Update the chat list with the new last message and time
+        ref.read(userProvider).updateLastMessage(
+              messageData['senderId'],
+              messageData['last_message'],
+              DateTime.parse(messageData['last_message_time']),
+            );
+
+        // Resort chat list after receiving a new message
+        ref.read(userProvider).sortChatList();
 
         // Handle new message
         ref.read(chatProvider).handleNewMessage(messageData);

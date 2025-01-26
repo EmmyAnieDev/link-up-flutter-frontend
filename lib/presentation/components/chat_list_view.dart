@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:link_up/data/provider/chat_provider.dart';
 
 import '../../app/router/go_router.dart';
+import '../../core/utils/date_formatter.dart';
 import '../../data/models/chat_list_model.dart';
 import '../../data/provider/user_provider.dart';
 import '../widgets/unread_counts_indicator.dart';
@@ -15,7 +16,8 @@ class ChatListView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final up = ref.watch(chatProvider);
+    final cp = ref.watch(chatProvider);
+    final crp = ref.read(chatProvider);
 
     return Padding(
       padding: const EdgeInsets.only(top: 15, right: 8, left: 8),
@@ -23,10 +25,14 @@ class ChatListView extends ConsumerWidget {
         itemCount: chatList.length,
         itemBuilder: (context, index) {
           final chat = chatList[index];
-          final unreadCount = up.unreadCounts.firstWhere(
+          final unreadCount = cp.unreadCounts.firstWhere(
             (element) => element['sender_id'] == chat.id,
             orElse: () => {'unread_count': 0},
           )['unread_count'];
+
+          final formattedTime = chat.lastMessageTime != null
+              ? formatTimestamp(chat.lastMessageTime!)
+              : '';
 
           return Column(
             children: [
@@ -34,10 +40,8 @@ class ChatListView extends ConsumerWidget {
                 onTap: () {
                   ref.read(userProvider).selectUser(chat);
                   context.push(AppRouter.chatPath);
-                  // Mark messages as read for the selected user
-                  ref
-                      .read(chatProvider)
-                      .removeUnreadMessageCounts(chat.id.toString());
+                  // Remove unread message count for the selected chat
+                  crp.removeUnreadMessageCounts(chat.id.toString());
                 },
                 child: Row(
                   children: [
@@ -80,7 +84,7 @@ class ChatListView extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            chat.lastMessage,
+                            chat.lastMessage!,
                             style: const TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.w300,
@@ -97,14 +101,15 @@ class ChatListView extends ConsumerWidget {
                         if (unreadCount > 0)
                           UnreadCountsIndicator(unreadCount: unreadCount),
                         const SizedBox(height: 3),
-                        Text(
-                          '${chat.lastMessageTime.hour}:${chat.lastMessageTime.minute.toString().padLeft(2, '0')}',
-                          style: const TextStyle(
-                            color: Color(0xFF626FFF),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
+                        if (chat.lastMessageTime != null)
+                          Text(
+                            formattedTime,
+                            style: const TextStyle(
+                              color: Color(0xFF626FFF),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],

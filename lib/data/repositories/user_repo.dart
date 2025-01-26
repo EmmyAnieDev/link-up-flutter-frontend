@@ -65,6 +65,8 @@ class UserRepository {
     try {
       final response = await ApiService.getRequest('users', token);
 
+      print(response);
+
       if (response == null || response.isEmpty) {
         throw ApiException('No response from server');
       }

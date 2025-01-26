@@ -84,7 +84,7 @@ class ChatController extends ChangeNotifier {
 
     if (token == null || selectedUser == null) return;
 
-    // Optimistically add the message to the list
+    // Optimistically add the message to the sender message list
     final pendingMessage = Message(
       content: messageController.text.trim(),
       senderId: currentUser?.id,
@@ -109,7 +109,31 @@ class ChatController extends ChangeNotifier {
 
       if (success) {
         pendingMessage.status = 'sent';
-        // Mark messages as read for the current chat
+        // Find the index of the optimistically added message
+        final index = messages.indexOf(pendingMessage);
+
+        if (index != -1) {
+          // Replace the pending message with the sent message
+          messages[index] = Message(
+            content: pendingMessage.content,
+            senderId: currentUser?.id,
+            timestamp: DateTime.now(),
+            isMe: true,
+            status: 'sent',
+          );
+        }
+
+        // Update last_message and last_message_time manually for sender
+        ref.read(userProvider).updateLastMessage(
+              selectedUser.id,
+              pendingMessage.content,
+              DateTime.now(),
+            );
+
+        // Resort chat list after updating last message
+        ref.read(userProvider).sortChatList();
+
+        // remove unread count for the current selected user chat
         await removeUnreadMessageCounts(selectedUser.id.toString());
       } else {
         pendingMessage.status = 'failed';
@@ -125,27 +149,37 @@ class ChatController extends ChangeNotifier {
     }
   }
 
+  // Handle message from web socket service class for real time.
   void handleNewMessage(Map<String, dynamic> data) {
     try {
       final currentUserId = ref.watch(authProvider).currentUser?.id;
       final selectedUser = ref.read(userProvider).selectedUser;
 
       final senderId = data['senderId'] as int?;
-      final receiverId = data['receiverId'] as int?;
+      final messageContent = data['message'] ?? '';
 
       final isCurrentChat =
           (selectedUser != null && selectedUser.id == senderId);
 
-      final message = Message(
-        content: data['message'] ?? '',
+      // Check if the message already exists
+      final isDuplicate = messages.any((message) =>
+          message.content == messageContent &&
+          message.senderId == senderId &&
+          message.timestamp.difference(DateTime.now()).inSeconds.abs() < 2);
+
+      if (isDuplicate) return;
+
+      // Create new message
+      final newMessage = Message(
+        content: messageContent,
         senderId: senderId,
         timestamp: DateTime.now(),
         isMe: senderId == currentUserId,
       );
 
-      messages.add(message);
+      messages.add(newMessage);
 
-      // If the message is from the current chat, mark it as read
+      // If the message is from the current chat, remove current selected user chat
       if (isCurrentChat) {
         removeUnreadMessageCounts(senderId.toString());
       }
