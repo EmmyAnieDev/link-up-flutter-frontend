@@ -6,16 +6,16 @@ import 'package:link_up/data/provider/auth_provider.dart';
 import 'package:link_up/data/repositories/auth_repo.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../../app/config/api_config.dart';
-import '../../app/config/web_socket_config.dart';
-import '../../data/provider/chat_provider.dart';
-import '../../data/provider/user_provider.dart';
+import '../../../app/config/api_config.dart';
+import '../../../app/config/web_socket_config.dart';
+import '../../../data/provider/chat_provider.dart';
+import '../../../data/provider/user_provider.dart';
 
-class WebSocketService {
-  final WidgetRef ref;
+class WebSocketChatChannelService {
+  final Ref ref;
   late WebSocketChannel channel;
 
-  WebSocketService(this.ref);
+  WebSocketChatChannelService(this.ref);
 
   void connect() {
     final url = WebSocketConfig.webSocketPusherURL;

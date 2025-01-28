@@ -4,7 +4,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:link_up/data/provider/user_provider.dart';
 
-import '../../../core/services/web_socket_service.dart';
 import '../../../data/provider/chat_provider.dart';
 import '../../components/appbar_profile_photo.dart';
 import '../../components/chat_list_view.dart';
@@ -17,30 +16,10 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen> {
-  late WebSocketService _pusherWebSocket;
-
   @override
   void initState() {
     super.initState();
-
-    // Initialize PusherWebSocket with WidgetRef
-    _pusherWebSocket = WebSocketService(ref);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        _pusherWebSocket.connect();
-      } catch (e) {
-        print('Error connecting WebSocket: $e');
-      }
-    });
-
     ref.read(chatProvider).fetchUnreadCounts();
-  }
-
-  @override
-  void dispose() {
-    _pusherWebSocket.disconnect();
-    super.dispose();
   }
 
   @override

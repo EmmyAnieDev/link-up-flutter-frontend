@@ -58,11 +58,26 @@ class ChatController extends ChangeNotifier {
 
       messages.clear();
       messages.addAll(fetchedMessages.map((data) {
+        String status = 'sending';
+        if (data['sent'] == true) {
+          status = 'sent';
+        }
+        if (data['delivered'] == true) {
+          status = 'received';
+        }
+        if (data['read'] == true) {
+          status = 'read';
+        }
+
         return Message(
           content: data['message'] ?? '',
           senderId: data['sender_id'] as int?,
           timestamp: DateTime.parse(data['created_at'] as String),
           isMe: data['sender_id'] == currentUserId,
+          status: status,
+          sent: data['sent'] ?? false,
+          delivered: data['delivered'] ?? false,
+          read: data['read'] ?? false,
         );
       }).toList());
 

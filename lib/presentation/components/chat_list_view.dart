@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:link_up/data/models/chat_list_model.dart';
 import 'package:link_up/data/provider/chat_provider.dart';
+import 'package:link_up/data/provider/user_provider.dart';
 
 import '../../app/router/go_router.dart';
 import '../../core/utils/date_formatter.dart';
-import '../../data/models/chat_list_model.dart';
-import '../../data/provider/user_provider.dart';
 import '../widgets/unread_counts_indicator.dart';
 
 class ChatListView extends ConsumerWidget {
@@ -18,6 +18,9 @@ class ChatListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cp = ref.watch(chatProvider);
     final crp = ref.read(chatProvider);
+    final onlineUsers = ref.watch(userProvider).onlineUsers;
+
+    print('Online Users in UI: $onlineUsers'); // Debug online users list
 
     return Padding(
       padding: const EdgeInsets.only(top: 15, right: 8, left: 8),
@@ -25,6 +28,12 @@ class ChatListView extends ConsumerWidget {
         itemCount: chatList.length,
         itemBuilder: (context, index) {
           final chat = chatList[index];
+          print('Chat ID: ${chat.id}'); // Debug each chat ID
+
+          // Check if the user is online
+          final isOnline = onlineUsers
+              .any((user) => user['id'].toString() == chat.id.toString());
+
           final unreadCount = cp.unreadCounts.firstWhere(
             (element) => element['sender_id'] == chat.id,
             orElse: () => {'unread_count': 0},
@@ -40,35 +49,47 @@ class ChatListView extends ConsumerWidget {
                 onTap: () {
                   ref.read(userProvider).selectUser(chat);
                   context.push(AppRouter.chatPath);
-                  // Remove unread message count for the selected chat
                   crp.removeUnreadMessageCounts(chat.id.toString());
                 },
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.grey[200],
-                      radius: 25,
-                      child: ClipOval(
-                        child: chat.profilePhotoBytes != null
-                            ? Image.memory(
-                                chat.profilePhotoBytes!,
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey[200],
+                          radius: 23,
+                          child: ClipOval(
+                            child: chat.profilePhotoBytes != null
+                                ? Image.memory(
+                                    chat.profilePhotoBytes!,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  )
+                                : const Icon(
                                     Icons.person,
-                                    size: 30,
+                                    size: 28,
                                     color: Colors.grey,
-                                  );
-                                },
-                              )
-                            : const Icon(
-                                Icons.person,
-                                size: 30,
-                                color: Colors.grey,
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: isOnline ? Colors.green : Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2,
                               ),
-                      ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -84,7 +105,7 @@ class ChatListView extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            chat.lastMessage!,
+                            chat.lastMessage ?? '',
                             style: const TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.w300,

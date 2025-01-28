@@ -7,6 +7,7 @@ import 'package:link_up/data/provider/user_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../app/router/go_router.dart';
+import '../../core/services/web_socket/web_socket_manager_provider.dart';
 import '../../core/utils/show_notifier_snack_bar.dart';
 import '../../core/utils/validators.dart';
 import '../models/user_model.dart';
@@ -75,6 +76,9 @@ class AuthController extends ChangeNotifier {
       _currentUser = User.fromJson(userData);
       await saveUserToPreferences(_currentUser!);
 
+      // Initialize WebSocketManager via webSocketProvider on successful registration
+      ref.read(webSocketProvider);
+
       await Future.delayed(const Duration(seconds: 3));
 
       await ref.read(userProvider).getAppUsers();
@@ -125,6 +129,9 @@ class AuthController extends ChangeNotifier {
       await saveUserToPreferences(_currentUser!);
       print('Logged-in User Data: ${_currentUser?.toJson()}');
 
+      // Initialize WebSocketManager via webSocketProvider on successful login
+      ref.read(webSocketProvider);
+
       await Future.delayed(const Duration(seconds: 3));
 
       await ref.read(userProvider).getAppUsers();
@@ -161,6 +168,9 @@ class AuthController extends ChangeNotifier {
     try {
       await AuthRepository.logoutUser(token);
 
+      // Dispose of WebSocket connections on successful logout
+      ref.read(webSocketProvider).dispose();
+
       _currentUser = null;
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('currentUser');
@@ -196,6 +206,9 @@ class AuthController extends ChangeNotifier {
     if (userData != null) {
       _currentUser = User.fromJson(jsonDecode(userData));
       notifyListeners();
+
+      // Initialize WebSocketManager if the user is already logged in
+      ref.read(webSocketProvider);
     }
   }
 

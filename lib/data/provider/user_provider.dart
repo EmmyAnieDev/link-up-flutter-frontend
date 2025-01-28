@@ -35,8 +35,26 @@ class UserController extends ChangeNotifier {
   ChatListModel? _selectedUser;
   ChatListModel? get selectedUser => _selectedUser;
 
+  List<Map<String, dynamic>> _onlineUsers = [];
+  List<Map<String, dynamic>> get onlineUsers => _onlineUsers;
+
   UserController(this.ref) {
     getAppUsers();
+  }
+
+  /// Add an online user
+  void addOnlineUser(Map<String, dynamic> userInfo) {
+    if (!_onlineUsers.any((user) => user['id'] == userInfo['id'])) {
+      _onlineUsers = [..._onlineUsers, userInfo];
+      notifyListeners();
+    }
+  }
+
+  /// remove online user
+  void removeOnlineUser(String userId) {
+    _onlineUsers =
+        _onlineUsers.where((user) => user['id'].toString() != userId).toList();
+    notifyListeners();
   }
 
   Future<void> selectUser(ChatListModel user) async {

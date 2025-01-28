@@ -24,40 +24,6 @@ class MessageBubble extends StatelessWidget {
       topRight: isMe ? Radius.zero : Radius.circular(15),
     );
 
-    // Determine the icon based on the message status
-    Widget? statusIcon;
-    if (isMe) {
-      switch (message.status) {
-        case 'sending':
-          statusIcon = const Icon(
-            Icons.hourglass_empty,
-            color: Colors.white,
-            size: 16,
-          );
-          break;
-        case 'sent':
-          statusIcon = const Icon(
-            Icons.done,
-            color: Colors.white,
-            size: 16,
-          );
-          break;
-        case 'received':
-          statusIcon = const Icon(
-            Icons.done_all,
-            color: Colors.white,
-            size: 16,
-          );
-          break;
-        default:
-          statusIcon = const Icon(
-            Icons.error_outline,
-            color: Colors.white,
-            size: 16,
-          );
-      }
-    }
-
     return Align(
       alignment: alignment,
       child: ConstrainedBox(
@@ -108,10 +74,7 @@ class MessageBubble extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
-                    if (statusIcon != null) ...[
-                      const SizedBox(width: 5),
-                      statusIcon,
-                    ],
+                    Icon(Icons.done),
                   ],
                 ),
               ],

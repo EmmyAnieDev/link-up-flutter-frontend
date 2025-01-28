@@ -25,7 +25,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatProvider);
+    final cp = ref.watch(chatProvider);
     final crp = ref.read(chatProvider);
     final up = ref.watch(userProvider);
 
@@ -58,7 +58,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           children: [
             Expanded(
-              child: chatState.isFetching
+              child: cp.isFetching
                   ? const Center(
                       child: SpinKitThreeBounce(
                       color: Color(0xFF626FFF),
@@ -67,10 +67,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   : ListView.builder(
                       controller: crp.scrollController,
                       reverse: true,
-                      itemCount: chatState.messages.length,
+                      itemCount: cp.messages.length,
                       itemBuilder: (context, index) {
-                        final message = chatState
-                            .messages[chatState.messages.length - 1 - index];
+                        final message =
+                            cp.messages[cp.messages.length - 1 - index];
                         return MessageBubble(message: message);
                       },
                     ),
